@@ -1,0 +1,113 @@
+/* ===================================================
+   Dashboard Stylesheet (User + Admin)
+   =================================================== */
+
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ---------------- SIDEBAR ---------------- */
+.sidebar {
+    width: 250px;
+    background: rgba(27, 94, 32, 0.95);
+    color: #fff;
+    padding: 20px 0;
+    min-height: 100vh;
+    flex-shrink: 0;
+}
+
+.sidebar .brand {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    padding: 10px 0 25px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 15px;
+}
+
+.sidebar a {
+    display: block;
+    color: #e8f5e9;
+    padding: 12px 25px;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-left: 4px solid #fff;
+}
+
+/* ---------------- MAIN CONTENT ---------------- */
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+    background: #f1f8f4;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+/* ---------------- STAT CARDS ---------------- */
+.stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.stat-card h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+.stat-card p {
+    color: #666;
+    margin: 0;
+}
+
+/* ---------------- TABLE ---------------- */
+.table-wrapper {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow-x: auto;
+}
+
+table th {
+    color: #1b5e20;
+}
+
+/* ---------------- COMPLAINT IMAGE PREVIEW ---------------- */
+.img-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
+    display: none;
+}
+
+/* ---------------- RESPONSIVE SIDEBAR ---------------- */
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+    }
+    .main-content {
+        padding: 20px;
+    }
+}
