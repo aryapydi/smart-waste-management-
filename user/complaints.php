@@ -47,8 +47,9 @@ $result = mysqli_stmt_get_result($stmt);
                     <th>Issue Type</th>
                     <th>Map</th>
                     <th>Description</th>
-                    <th>Image</th>
-                    <th>Status</th>
+                     <th>Before Image</th>
+                     <th>After Image</th>
+                     <th>Status</th>
                     <th>Expected Days</th>
                     <th>Admin Remark</th>
                     <th>Raised Date</th>
@@ -69,13 +70,20 @@ $result = mysqli_stmt_get_result($stmt);
     </a>
 </td>
                             <td><?php echo htmlspecialchars($row['description']); ?></td>
-                            <td>
-                                <?php if ($row['image']): ?>
-                                    <a href="../uploads/<?php echo htmlspecialchars($row['image']); ?>" target="_blank">View</a>
-                                <?php else: ?>
-                                    <span class="text-muted">No Image</span>
-                                <?php endif; ?>
-                            </td>
+                             <td>
+                                 <?php if ($row['image']): ?>
+                                     <a href="../uploads/<?php echo htmlspecialchars($row['image']); ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:11px;">View</a>
+                                 <?php else: ?>
+                                     <span class="text-muted">No Image</span>
+                                 <?php endif; ?>
+                             </td>
+                             <td>
+                                 <?php if ($row['resolved_image']): ?>
+                                     <a href="../uploads/<?php echo htmlspecialchars($row['resolved_image']); ?>" target="_blank" class="btn btn-sm btn-info text-white py-0 px-2" style="font-size:11px;">View Proof</a>
+                                 <?php else: ?>
+                                     <span class="text-muted">-</span>
+                                 <?php endif; ?>
+                             </td>
                             <td>
                                 <?php
                                 $badge_class = "badge-pending";
@@ -85,14 +93,11 @@ $result = mysqli_stmt_get_result($stmt);
                                 <span id="status_<?php echo $row['id']; ?>" class="badge <?php echo $badge_class; ?>"><?php echo $row['status']; ?></span>
                             </td>
                             <td>
-
-<td>
-<?php
-echo !empty($row['admin_remark'])
-    ? htmlspecialchars($row['admin_remark'])
-    : '-';
-?>
-</td>
+                                <?php echo !empty($row['estimated_days']) ? htmlspecialchars($row['estimated_days']) . " Days" : '-'; ?>
+                            </td>
+                            <td>
+                                <?php echo !empty($row['admin_remark']) ? htmlspecialchars($row['admin_remark']) : '-'; ?>
+                            </td>
 
 <td>
 <?php echo date("d M Y", strtotime($row['created_at'])); ?>
@@ -111,7 +116,7 @@ else{
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
-                    <tr><td colspan="9" class="text-center text-muted">No complaints raised yet.</td></tr>
+                    <tr><td colspan="11" class="text-center text-muted">No complaints raised yet.</td></tr>
                 <?php endif; ?>
                 </tbody>
             </table>

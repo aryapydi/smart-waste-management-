@@ -3,8 +3,6 @@
 -- Database: waste_management_db
 -- ===================================================
 
-CREATE DATABASE IF NOT EXISTS waste_management_db;
-USE waste_management_db;
 
 -- ---------------------------------------------------
 -- USERS TABLE

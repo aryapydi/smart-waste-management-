@@ -62,50 +62,91 @@ $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 $status = isset($_POST['status']) ? $_POST['status'] : '';
 $estimated_days = isset($_POST['estimated_days']) ? intval($_POST['estimated_days']) : 0;
 $admin_remark = isset($_POST['admin_remark']) ? trim($_POST['admin_remark']) : '';
-$estimated_days = isset($_POST['estimated_days']) ? intval($_POST['estimated_days']) : 0;
+
 if ($id <= 0 || !in_array($status, $allowed_statuses)) {
     echo json_encode(['success' => false, 'message' => 'Invalid input']);
     exit();
 }
 
+// Handle resolved image upload
+$resolved_image_name = "";
+if (isset($_FILES['resolved_image']) && $_FILES['resolved_image']['error'] == 0) {
+    $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+    $file_ext = strtolower(pathinfo($_FILES['resolved_image']['name'], PATHINFO_EXTENSION));
+
+    if (in_array($file_ext, $allowed_ext)) {
+        if ($_FILES['resolved_image']['size'] <= 5 * 1024 * 1024) { // 5MB max
+            $resolved_image_name = "resolved_" . time() . "_" . uniqid() . "." . $file_ext;
+            $upload_path = "../uploads/" . $resolved_image_name;
+            if (!move_uploaded_file($_FILES['resolved_image']['tmp_name'], $upload_path)) {
+                echo json_encode(['success' => false, 'message' => 'Failed to save uploaded file.']);
+                exit();
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Image size must be under 5MB.']);
+            exit();
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Only JPG, JPEG, PNG, and GIF images are allowed.']);
+        exit();
+    }
+}
+
 if ($status == "Resolved") {
+    if (!empty($resolved_image_name)) {
+        $sql = "UPDATE complaints
+            SET status = ?,
+                estimated_days = ?,
+                admin_remark = ?,
+                resolved_image = ?,
+                completed_at = NOW()
+            WHERE id = ?";
 
-    $sql = "UPDATE complaints
-        SET status = ?,
-            estimated_days = ?,
-            admin_remark = ?,
-            completed_at = NOW()
-        WHERE id = ?";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param(
+            $stmt,
+            "sisisi",
+            $status,
+            $estimated_days,
+            $admin_remark,
+            $resolved_image_name,
+            $id
+        );
+    } else {
+        $sql = "UPDATE complaints
+            SET status = ?,
+                estimated_days = ?,
+                admin_remark = ?,
+                completed_at = NOW()
+            WHERE id = ?";
 
-$stmt = mysqli_prepare($conn, $sql);
-
-mysqli_stmt_bind_param(
-    $stmt,
-    "sisi",
-    $status,
-    $estimated_days,
-    $admin_remark,
-    $id
-);
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param(
+            $stmt,
+            "sisi",
+            $status,
+            $estimated_days,
+            $admin_remark,
+            $id
+        );
+    }
 } else {
-$sql = "UPDATE complaints
-        SET status = ?,
-            estimated_days = ?,
-            admin_remark = ?,
-            completed_at = NULL
-        WHERE id = ?";
+    $sql = "UPDATE complaints
+            SET status = ?,
+                estimated_days = ?,
+                admin_remark = ?,
+                completed_at = NULL
+            WHERE id = ?";
 
-$stmt = mysqli_prepare($conn, $sql);
-
-mysqli_stmt_bind_param(
-    $stmt,
-    "sisi",
-    $status,
-    $estimated_days,
-    $admin_remark,
-    $id
-);
- 
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param(
+        $stmt,
+        "sisi",
+        $status,
+        $estimated_days,
+        $admin_remark,
+        $id
+    );
 }
 
 if (mysqli_stmt_execute($stmt)) {

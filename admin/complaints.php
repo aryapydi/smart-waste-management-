@@ -8,9 +8,9 @@ $filter = isset($_GET['filter']) ? $_GET['filter'] : 'All';
 
 if ($filter !== 'All') {
     $filter_safe = mysqli_real_escape_string($conn, $filter);
-    $sql = "SELECT c.*, u.name as user_name, u.email as user_email FROM complaints c JOIN users u ON c.user_id = u.id WHERE c.status = '$filter_safe' ORDER BY c.created_at DESC";
+    $sql = "SELECT c.*, u.name as user_name, u.email as user_email, u.phone as user_phone FROM complaints c JOIN users u ON c.user_id = u.id WHERE c.status = '$filter_safe' ORDER BY c.created_at DESC";
 } else {
-    $sql = "SELECT c.*, u.name as user_name, u.email as user_email FROM complaints c JOIN users u ON c.user_id = u.id ORDER BY c.created_at DESC";
+    $sql = "SELECT c.*, u.name as user_name, u.email as user_email, u.phone as user_phone FROM complaints c JOIN users u ON c.user_id = u.id ORDER BY c.created_at DESC";
 }
 $result = mysqli_query($conn, $sql);
 ?>
@@ -64,6 +64,7 @@ $result = mysqli_query($conn, $sql);
                     <th>Status</th>
                     <th>Estimated Days</th>
                     <th>Admin Remark</th>
+                    <th>Resolved Proof</th>
                     <th>Date</th>
                 </tr>
                 </thead>
@@ -72,7 +73,11 @@ $result = mysqli_query($conn, $sql);
                     <?php while ($row = mysqli_fetch_assoc($result)): ?>
                         <tr id="row_<?php echo $row['id']; ?>">
                             <td>#<?php echo $row['id']; ?></td>
-                            <td><?php echo htmlspecialchars($row['user_name']); ?><br><small class="text-muted"><?php echo htmlspecialchars($row['user_email']); ?></small></td>
+                            <td>
+                                <?php echo htmlspecialchars($row['user_name']); ?><br>
+                                <small class="text-muted"><?php echo htmlspecialchars($row['user_email']); ?></small><br>
+                                <small class="text-muted">📞 <a href="tel:<?php echo htmlspecialchars($row['user_phone']); ?>" style="text-decoration:none; color:inherit;"><?php echo htmlspecialchars($row['user_phone']); ?></a></small>
+                            </td>
                             <td><?php echo htmlspecialchars($row['issue_type']); ?></td>
                             <td>
     <a href="https://www.google.com/maps?q=<?php echo urlencode($row['location']); ?>"
@@ -110,11 +115,17 @@ $result = mysqli_query($conn, $sql);
     id="remark_<?php echo $row['id']; ?>"
     rows="2"><?php echo htmlspecialchars($row['admin_remark']); ?></textarea>
 </td>
+                            <td>
+                                 <input type="file" class="form-control form-control-sm" id="resolved_image_<?php echo $row['id']; ?>" accept="image/*" style="max-width:180px;">
+                                 <?php if ($row['resolved_image']): ?>
+                                     <br><small><a href="../uploads/<?php echo htmlspecialchars($row['resolved_image']); ?>" target="_blank" class="btn btn-sm btn-info text-white py-0 px-2" style="font-size:11px;">View Proof</a></small>
+                                 <?php endif; ?>
+                             </td>
                             <td><?php echo date("d M Y", strtotime($row['created_at'])); ?></td>
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
-                    <tr><td colspan="9" class="text-center text-muted">No complaints found.</td></tr>
+                    <tr><td colspan="11" class="text-center text-muted">No complaints found.</td></tr>
                 <?php endif; ?>
                 </tbody>
             </table>
@@ -127,20 +138,32 @@ $result = mysqli_query($conn, $sql);
 function updateStatus(complaintId, newStatus) {
 let estimatedDays = document.getElementById('days_' + complaintId).value;
 let remark = document.getElementById('remark_' + complaintId).value;
+let resolvedImageInput = document.getElementById('resolved_image_' + complaintId);
+
+let formData = new FormData();
+formData.append('id', complaintId);
+formData.append('status', newStatus);
+formData.append('estimated_days', estimatedDays);
+formData.append('admin_remark', remark);
+
+if (resolvedImageInput && resolvedImageInput.files.length > 0) {
+    formData.append('resolved_image', resolvedImageInput.files[0]);
+}
+
     fetch('update_status.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'id=' + encodeURIComponent(complaintId) +
-      '&status=' + encodeURIComponent(newStatus) +
-      '&estimated_days=' + encodeURIComponent(estimatedDays)+
-'&admin_remark=' + encodeURIComponent(remark)})
+        body: formData
+    })
     .then(response => response.json())
     .then(data => {
         const alertArea = document.getElementById('alert_area');
         if (data.success) {
             alertArea.innerHTML = '<div class="alert alert-success auto-alert">Status updated to "' + newStatus + '" for complaint #' + complaintId + '</div>';
+            if (resolvedImageInput && resolvedImageInput.files.length > 0) {
+                setTimeout(() => { location.reload(); }, 1500);
+            }
         } else {
-            alertArea.innerHTML = '<div class="alert alert-danger auto-alert">Failed to update status. Please try again.</div>';
+            alertArea.innerHTML = '<div class="alert alert-danger auto-alert">' + (data.message || 'Failed to update status. Please try again.') + '</div>';
         }
         setTimeout(() => { alertArea.innerHTML = ''; }, 3000);
     })
